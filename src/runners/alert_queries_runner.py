@@ -73,19 +73,19 @@ CREATE TRANSIENT TABLE results.RUN_{RUN_ID}_{{query_name}} AS
 SELECT OBJECT_CONSTRUCT(
          'ALERT_ID', UUID_STRING(),
          'QUERY_NAME', '{{query_name}}',
-         'QUERY_ID', IFNULL(QUERY_ID, PARSE_JSON('null')),
-         'ENVIRONMENT', IFNULL(ENVIRONMENT, PARSE_JSON('null')),
-         'SOURCES', IFNULL(SOURCES, PARSE_JSON('null')),
-         'ACTOR', IFNULL(ACTOR, PARSE_JSON('null')),
-         'OBJECT', IFNULL(OBJECT, PARSE_JSON('null')),
-         'ACTION', IFNULL(ACTION, PARSE_JSON('null')),
-         'TITLE', IFNULL(TITLE, PARSE_JSON('null')),
-         'EVENT_TIME', IFNULL(EVENT_TIME, PARSE_JSON('null')),
-         'ALERT_TIME', IFNULL(ALERT_TIME, PARSE_JSON('null')),
-         'DESCRIPTION', IFNULL(DESCRIPTION, PARSE_JSON('null')),
-         'DETECTOR', IFNULL(DETECTOR, PARSE_JSON('null')),
-         'EVENT_DATA', IFNULL(EVENT_DATA, PARSE_JSON('null')),
-         'SEVERITY', IFNULL(SEVERITY, PARSE_JSON('null')),
+         'QUERY_ID', IFNULL(query_id, PARSE_JSON('null')),
+         'ENVIRONMENT', IFNULL(environment, PARSE_JSON('null')),
+         'SOURCES', IFNULL(sources, PARSE_JSON('null')),
+         'ACTOR', IFNULL(actor, PARSE_JSON('null')),
+         'OBJECT', IFNULL(object, PARSE_JSON('null')),
+         'ACTION', IFNULL(action, PARSE_JSON('null')),
+         'TITLE', IFNULL(title, PARSE_JSON('null')),
+         'EVENT_TIME', IFNULL(event_time, PARSE_JSON('null')),
+         'ALERT_TIME', IFNULL(alert_time, PARSE_JSON('null')),
+         'DESCRIPTION', IFNULL(description, PARSE_JSON('null')),
+         'DETECTOR', IFNULL(detector, PARSE_JSON('null')),
+         'EVENT_DATA', IFNULL(event_data, PARSE_JSON('null')),
+         'SEVERITY', IFNULL(severity, PARSE_JSON('null')),
          'HANDLERS', IFNULL(OBJECT_CONSTRUCT(*):HANDLERS, PARSE_JSON('null'))
        ) AS alert
      , alert_time
@@ -111,7 +111,7 @@ MERGE_ALERTS = f"""MERGE INTO results.alerts AS alerts USING (
 ON (
   alerts.alert:OBJECT = new_alerts.alert:OBJECT
   AND alerts.alert:DESCRIPTION = new_alerts.alert:DESCRIPTION
-  AND alerts.alert:event_time > {{from_time_sql}}
+  AND alerts.event_time > {{from_time_sql}}
 )
 
 WHEN MATCHED
@@ -137,8 +137,9 @@ def merge_alerts(query_name, from_time_sql):
         from_time_sql=from_time_sql,
         new_alerts_table=f"RUN_{RUN_ID}_{query_name}",
     )
-    result = db.execute(sql).fetchall()
-    created_count, updated_count = result[0]
+    result = next(db.fetch(sql))
+    created_count = result['number of rows inserted']
+    updated_count = result['number of rows updated']
     log.info(f"{query_name} created {created_count}, updated {updated_count} rows.")
     return created_count, updated_count
 
