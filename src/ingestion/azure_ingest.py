@@ -11,6 +11,8 @@ from runners.helpers import db, log, kms
 from snowflake.ingest import SimpleIngestManager
 from snowflake.ingest import StagedFile
 
+import hashlib
+
 
 def get_timestamp(table):
 
@@ -47,6 +49,12 @@ def main():
             continue
 
         sas_token = kms.decrypt_if_encrypted(encrypted_sas_token)
+        log.info(f"Length of token: {len(sas_token)}")
+        log.info(f"hash of token: {hashlib.sha256(sas_token.encode()).hexdigest()}")
+
+        # hash token to verify that it's the same locally and in docker
+
+        # check storage activity logs (check with bora or aaron to enable), will show if sas is invalid
 
         log.info(f"Now working on pipe {pipe_name}")
 
