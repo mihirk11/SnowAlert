@@ -17,6 +17,7 @@ We hope that Snowflake customers can do better data-driven security using Snowfl
 
 Ready? Let's [get started!](https://snowalert.readthedocs.io/en/latest/pages/start.html "SnowAlert Documentation")
 
+TEST
 ## License
 
 This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
